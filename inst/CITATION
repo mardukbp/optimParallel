@@ -1,0 +1,19 @@
+citHeader("To cite optimParallel in publications use:")
+
+citEntry(entry = "article",
+  title        = "optimParallel: an R Package Providing Parallel Versions of the Gradient-Based Optimization Methods of optim()",
+  author       = personList(as.person("Florian Gerber"),
+                            as.person("Reinhard Furrer")
+                            ),
+  journal      = "ArXiv e-prints",
+  year         = "2018",
+  volume       = "",
+  number       = "",
+  pages        = "1--4",
+  url          = "http://arxiv.org/abs/1804.11058",
+  doi          = "",
+  
+  textVersion  =
+  paste("F. Gerber and R. Furrer (2018)",
+"optimParallel: an R Package Providing Parallel Versions of the Gradient-Based Optimization Methods of optim(). URL http://arxiv.org/abs/1804.11058")
+)

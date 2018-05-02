@@ -1,0 +1,6 @@
+%\VignetteIndexEntry{Parallel versions of gradient-based optim() methods}
+%\VignetteEngine{R.rsp::asis}
+%\VignetteKeyword{parallel}
+%\VignetteKeyword{optim}
+%\VignetteKeyword{optimParallel}
+%\VignetteKeyword{optimization}

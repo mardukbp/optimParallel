@@ -1,8 +1,8 @@
 Package: optimParallel
 Type: Package
 Title: Parallel Versions of the Gradient-Based optim() Methods
-Version: 0.7-2
-Date: 2018-05-01
+Version: 0.7-3
+Date: 2018-07-28
 Author: Florian Gerber
 Maintainer: Florian Gerber <florian.gerber@math.uzh.ch>
 Description: Provides parallel versions of the gradient-based optim() methods. The main function of the package is optimParallel(), which has the same usage and output as optim(). Using optimParallel() can significantly reduce the optimization time.
@@ -15,6 +15,6 @@ Suggests: R.rsp, roxygen2, spam, microbenchmark, testthat, ggplot2,
 VignetteBuilder: R.rsp
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2018-05-01 10:45:21 UTC; floger
+Packaged: 2018-07-28 04:44:11 UTC; floger
 Repository: CRAN
-Date/Publication: 2018-05-02 19:01:48 UTC
+Date/Publication: 2018-07-28 05:00:05 UTC

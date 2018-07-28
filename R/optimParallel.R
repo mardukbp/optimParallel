@@ -13,11 +13,11 @@
 #' @param fn see the documentation of \code{\link[stats]{optim}}.
 #' @param gr see the documentation of \code{\link[stats]{optim}}.
 #' @param ... see the documentation of \code{\link[stats]{optim}}.
-#' Note that depending on the chosen cluster type, \code{fn} and \code{gr} have no access to \code{.GlobalEnv}.
-#' Hence, all object required by \code{fn} and \code{gr} have to be added here.
-#' @param method parallel versions of the gradient-based methods \code{"L-BFGS-B"}, \code{"BFGS"}, and \code{"CG"} of \code{\link[stats]{optim}} are available.
-#' See the documentation of \code{\link[stats]{optim}}.
-#' If another method is specified, the arguments are directly passed to \code{\link[stats]{optim}}. 
+#' Note that depending on the chosen cluster type for parallel execution, the \code{.GlobalEnv} of the R processes in the cluster contain different R objects compared to the main R process.
+#' In that case, it may be necessary to add all R object required by \code{fn} and \code{gr} here in order to pass them to the R processes in the cluster.
+#' @param method parallel versions of the gradient-based methods \code{"L-BFGS-B"} (default), \code{"BFGS"}, and \code{"CG"} of \code{\link[stats]{optim}} are available.
+#' See the documentation of \code{\link[stats]{optim}} for information on those methods.
+#' If another method is specified, all arguments are directly passed to \code{\link[stats]{optim}}. 
 #' @param lower see the documentation of \code{\link[stats]{optim}}.
 #' @param upper see the documentation of \code{\link[stats]{optim}}.
 #' @param control see the documentation of \code{\link[stats]{optim}}.
@@ -30,13 +30,13 @@
 #' See \code{\link[parallel]{setDefaultCluster}} for information on how to set up a default cluster.} 
 #'  \item{\code{forward}}{ logical vector of length 1. If \code{FALSE} (default when loading the package), a numeric central difference approximation of the gradient defined as
 #' \eqn{(fn(x+\epsilon)-fn(x-\epsilon))/(2\epsilon)} is used, which corresponds to the approximation used in \code{\link[stats]{optim}}.
-#' If \code{TRUE}, a nummeric forward difference approximation of the gradient essentially defined as
-#' \eqn{(fn(x+\epsilon)-fn(x))/\epsilon} is used. This reduces the number of function calls from \eqn{1+2p} to \eqn{1+p} and can be useful, if the number of available cores is smaller than \eqn{1+2p}.}
+#' If \code{TRUE}, a numeric forward difference approximation of the gradient essentially defined as
+#' \eqn{(fn(x+\epsilon)-fn(x))/\epsilon} is used. This reduces the number of function calls from \eqn{1+2p} to \eqn{1+p} and can be useful if the number of available cores is smaller than \eqn{1+2p} and if the memory limit is reached.}
 #' \item{\code{loginfo}}{ logical vector of length 1 with default value \code{FALSE} when loading the package. If \code{TRUE},
-#' additional log information containing the evaluated parameters as well as return the values of \code{fn} and \code{gr} is returned.}
+#' additional log information containing the evaluated parameters as well as return values of \code{fn} and \code{gr} is returned.}
 #' }
 #' 
-#' @return Same as \code{\link[stats]{optim}}. See the documentation thereof.\cr
+#' @return Same as the return value of \code{\link[stats]{optim}}. See the documentation thereof for more information.\cr
 #' If a gradient-based method is specified and \code{parallel=list(loginfo=TRUE)}, additional log information containing the evaluated parameters as well as
 #' the return values of \code{fn} and \code{gr} is returned.
 #'
@@ -49,6 +49,32 @@
 #' optimParallel: an R Package Providing Parallel Versions of the Gradient-Based Optimization Methods of optim(). 
 #' ArXiv e-prints. URL http://arxiv.org/abs/1804.11058.
 #' Also available as vignette of this package \code{vignette("optimParallel")}. 
+#'
+#' @section Notes:
+#' \describe{
+#' \item{1.}{If \code{fn} or \code{gr} depend on functions or methods from loaded packages,
+#' it may be necessary to explicitly load those packages in all processes of the cluster.
+#' For \code{cl} of class \code{"cluster"} one can use \code{clusterEvalQ(cl, search())} to check
+#' whether all required packages are on the search paths of all processes.
+#' If, for example, the R package \pkg{spam} is required and missing on those search paths,
+#' it can be added via \code{clusterEvalQ(cl, library("spam"))}.} 
+#' \item{2.}{If \code{fn} or \code{gr} depend on functions or objects defined in the current R session,
+#' it may be necessary to pass them to \code{optimParallel} via the \code{...} argument.
+#' Alternatively, they can be made available to the R processes in the cluster via \code{\link[parallel]{clusterEvalQ}}.}
+#' \item{3.}{Using parallel R code inside \code{fn} and \code{gr} may not work, because this results in nested parallel processing.}
+#' \item{4.}{Using \code{optimParellel} with \eqn{n} parallel processes increases the memory usage by about factor \eqn{n} compared to a call to \code{\link[stats]{optim}}.
+#' If the memory limit is reached this may severely slowdown the optimization.
+#' Strategies to reduce memory usage are
+#' (1) kill all unused processes on the computer,
+#' (2) revise the code of \code{fn} and/or \code{gr} to reduce its memory usage, and
+#' (3) reduce the number of parallel processes by specifying the argument \code{parallel=list(forward=TRUE)} and/or
+#' setting up a cluster with less parallel processes.}
+#' }
+#'
+#' @section Issues and bug report:
+#' A list of known issues of \code{optimParallel} can be found at \url{https://git.math.uzh.ch/florian.gerber/optimParallel/issues}.
+#' Please report issues not listed there to\eqn{\,} \email{florian.gerber@@math.uzh.ch}. Do not forget to include
+#' an R script reproducing the issue and the output of \code{sessionInfo()}. 
 #' 
 #' @seealso
 #' \code{\link[stats]{optim}},
@@ -110,7 +136,7 @@
 #' setDefaultCluster(cl=NULL); stopCluster(cl) }
 #' @export
 #' @importFrom stats optim
-optimParallel <- function(par, fn, gr = NULL, ..., method = c("BFGS", "L-BFGS-B", "CG"),
+optimParallel <- function(par, fn, gr = NULL, ..., method = c("L-BFGS-B", "BFGS", "CG"),
                           lower = -Inf, upper = Inf, control = list(), hessian = FALSE,
                           parallel=list()){
     dots <- list(...)
@@ -145,7 +171,8 @@ optimParallel <- function(par, fn, gr = NULL, ..., method = c("BFGS", "L-BFGS-B"
                                 forward=parallel$forward,
                                 lower=lower, upper=upper, 
                                 cl=parallel$cl, ndeps=control$ndeps,
-                                fnscale=fnscale, parscale=parscale)
+                                fnscale=fnscale, parscale=parscale,
+                                parnames=names(par))
     out <- stats::optim(par=par, fn=fg$f, gr=fg$g, method = method, lower=lower,
                         upper=upper, control=control, hessian=hessian)
     out$value <- out$value*fnscale
@@ -159,7 +186,8 @@ optimParallel <- function(par, fn, gr = NULL, ..., method = c("BFGS", "L-BFGS-B"
 #' @importFrom parallel parLapply
 parallel_fg_generator <- function(fn, gr=NULL, args_list=list(),
                                   forward=FALSE, lower=-Inf, upper=Inf,
-                                  cl=NULL, ndeps=1e-3, fnscale=1, parscale=1){
+                                  cl=NULL, ndeps=1e-3, fnscale=1, parscale=1,
+                                  parnames=NULL){
     stopifnot(is.function(fn),
               is.null(gr) || is.function(gr), 
               is.list(args_list),
@@ -168,7 +196,8 @@ parallel_fg_generator <- function(fn, gr=NULL, args_list=list(),
               is.null(cl) || inherits(cl, "cluster"),
               is.null(ndeps) || is.numeric(ndeps),
               is.numeric(fnscale) || is.null(fnscale),
-              is.numeric(parscale) || is.null(parscale))
+              is.numeric(parscale) || is.null(parscale),
+              is.character(parnames) || is.null(parnames))
     if(any(is.na(lower))) lower[is.na(lower)] <- -Inf
     if(any(is.na(upper))) lower[is.na(upper)] <- Inf
 
@@ -197,7 +226,7 @@ parallel_fg_generator <- function(fn, gr=NULL, args_list=list(),
                     }
                 }
                 PAR <- cbind(PAR, par)
-                e <- unname(unlist(evalParallel(cl=cl, f=fn, args=args_list, firstArg=PAR)))
+                e <- unname(unlist(evalParallel(cl=cl, f=fn, args=args_list, firstArg=PAR, parnames=parnames)))
                 e <- e/fnscale
                 value <- e[length(e)]
                 length(e) <- length(e)-1
@@ -222,7 +251,7 @@ parallel_fg_generator <- function(fn, gr=NULL, args_list=list(),
                     }
                 }
                 PAR <- cbind(PAR, par)
-                e <- unname(unlist(evalParallel(cl=cl, f=fn, args=args_list, firstArg=PAR)))
+                e <- unname(unlist(evalParallel(cl=cl, f=fn, args=args_list, firstArg=PAR, parnames=parnames)))
                 e <- e/fnscale
                 value <- e[length(e)]
                 length(e) <- length(e)-1
@@ -230,8 +259,8 @@ parallel_fg_generator <- function(fn, gr=NULL, args_list=list(),
                 grad <- c(e_mat[,1]-e_mat[,2])/ndepsused
             }
         }else{ # gr is not null
-            funlist <- list(getFunctions(fn, args_list, par)[[1]],
-                            getFunctions(gr, args_list, par)[[1]])
+            funlist <- list(getFunctions(f=fn, args=args_list, firstArg=par, parnames=parnames)[[1]],
+                            getFunctions(f=gr, args=args_list, firstArg=par, parnames=parnames)[[1]])
             res <- parallel::parLapply(cl=cl, X=funlist, fun=function(x) x())
             value <- res[[1]]/fnscale 
             grad <- res[[2]]/fnscale 

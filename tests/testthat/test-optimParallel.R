@@ -160,9 +160,6 @@ test_that("parscale",{
 })
 
 test_that("gradient",{
-
-    optimParallel(par=2, fn=f4, gr=g4, method = "L-BFGS-B" )
-    
     compareOptim(list(par=c(2), fn=f4, gr=g4, method = "L-BFGS-B",
                       control=list(factr=factr)),
                  verbose=verbose)

@@ -8,6 +8,6 @@ on "L-BFGS-B", the speed increase is about factor 1+2p when no analytic gradient
 1+2p processor cores are available.
 
 See the ArXiv e-prints URL http://arxiv.org/abs/1804.11058
-also available as package vignette.
+also available as package vignette for more information.
 
 R> vignette("optimParallel")

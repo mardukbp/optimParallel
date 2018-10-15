@@ -29,7 +29,8 @@ Note that depending on the chosen cluster type for parallel execution, the \code
 In that case, it may be necessary to add all R object required by \code{fn} and \code{gr} here in order to pass them to the R processes in the cluster.}
 
 \item{method}{parallel versions of the gradient-based methods \code{"L-BFGS-B"} (default), \code{"BFGS"}, and \code{"CG"} of \code{\link[stats]{optim}} are available.
-See the documentation of \code{\link[stats]{optim}} for information on those methods.
+The recommended method is \code{"L-BFGS-B"} because it triggers one (approximate) gradient evaluation per iteration, which best fits the implemented parallel processing scheme.   
+See the documentation of \code{\link[stats]{optim}} for information on the methods.
 If another method is specified, all arguments are directly passed to \code{\link[stats]{optim}}.}
 
 \item{lower}{see the documentation of \code{\link[stats]{optim}}.}

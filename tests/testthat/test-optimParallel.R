@@ -42,6 +42,12 @@ f6 <- function(par){
     par[1]^2+(1-par[2])^2
 }
 
+f7 <- function(x, ...){
+    dots <- list(...)
+    if(!identical(dots, list()))
+        return(sum((x-dots[[1]])^2))
+    sum(x^2)
+}
 
 test_that("optimParallel",{
     compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
@@ -194,4 +200,18 @@ test_that("method = BFGS and CG",{
     compareOptim(list(par=c(2), fn=f5, method = "CG",
                       control=list(factr=factr), a=1),
                  verbose=verbose)
+})
+
+
+test_that("fn can have ... arguments",{
+    compareOptim(list(par=2, fn=f7, method = "L-BFGS-B",
+                      control=list(factr=factr)),
+                 verbose=verbose)
+    compareOptim(list(par=2, fn=f7, kjvasfa=4, method = "L-BFGS-B",
+                      control=list(factr=factr)),
+                 verbose=verbose)
+    
+    expect_warning(optimParallel(par=2, fn=f7, x=2, control=list(factr=factr)),
+                   "has the same name as one argument passed through")
+
 })

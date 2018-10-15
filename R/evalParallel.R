@@ -1,27 +1,29 @@
-integrateArgs <- function(f, args){
-    form <- formals(f)
-    if(!is.null(form))
-        for(i in seq_along(form))
-            assign(names(form)[i], form[[i]])
-    if(!is.null(args))
-        for(i in seq_along(args))
-            assign(names(args)[i], args[[i]])
-    ff <- function(){}
-    parent.env(environment(ff)) <- .GlobalEnv
-    body(ff) <- body(f)
-    if(any(names(form) == "..."))
-        formals(ff) <- form[names(form) == "..."]
-    ff
+integrateArgs <- function(f, args) {
+    if(is.null(formals(f))) ## like sin()
+        args <- args[1]
+    else if (all(names(formals(f)) != "..."))
+        args <- args[names(args) %in% names(formals(f))]
+    do.call(function (f, ...){
+                                        # inspired from purrr::partial()
+        eval(call("function", NULL, substitute(f(...))),
+             envir=environment(f))
+    }, c(f=list(f), args))
+    ##do.call(purrr::partial, c(list(f), args))
 }
 
-getFunctions <- function(f, args, firstArg, parnames){
+getFunctions <- function(f,
+                         args,     ## potential other arguments
+                         firstArg, ## first argument
+                         parnames){
     if(is.vector(firstArg))
         firstArg <- matrix(data=firstArg)
     lapply(seq_len(ncol(firstArg)), function(x){
         fa <- firstArg[,x]
         names(fa) <- parnames
-        args[[names(formals(f))[1]]] <- fa
-        integrateArgs(f=f, args=args)
+        args <- args[names(args) != names(formals(args(f)))[1]]
+        allargs <- c(list(fa), args)
+        names(allargs)[1] <- names(formals(args(f)))[1]
+        integrateArgs(f=f, args=allargs)
     })
 }
 

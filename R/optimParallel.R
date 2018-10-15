@@ -16,7 +16,8 @@
 #' Note that depending on the chosen cluster type for parallel execution, the \code{.GlobalEnv} of the R processes in the cluster contain different R objects compared to the main R process.
 #' In that case, it may be necessary to add all R object required by \code{fn} and \code{gr} here in order to pass them to the R processes in the cluster.
 #' @param method parallel versions of the gradient-based methods \code{"L-BFGS-B"} (default), \code{"BFGS"}, and \code{"CG"} of \code{\link[stats]{optim}} are available.
-#' See the documentation of \code{\link[stats]{optim}} for information on those methods.
+#' The recommended method is \code{"L-BFGS-B"} because it triggers one (approximate) gradient evaluation per iteration, which best fits the implemented parallel processing scheme.   
+#' See the documentation of \code{\link[stats]{optim}} for information on the methods.
 #' If another method is specified, all arguments are directly passed to \code{\link[stats]{optim}}. 
 #' @param lower see the documentation of \code{\link[stats]{optim}}.
 #' @param upper see the documentation of \code{\link[stats]{optim}}.
@@ -140,9 +141,12 @@ optimParallel <- function(par, fn, gr = NULL, ..., method = c("L-BFGS-B", "BFGS"
                           lower = -Inf, upper = Inf, control = list(), hessian = FALSE,
                           parallel=list()){
     dots <- list(...)
+    if(!identical(dots, list()) && (any(names(formals(args(fn)))[1]==names(dots)) || any(names(formals(args(fn)))[1]==names(dots))))
+        warning("The first argument of \"fn\" and/or \"gr\" has the same name as one argument passed through \"...\". The value passed through \"...\" for that argument is ignored.")
+    
     method <- method[1]
-    if(!(method %in% c("BFGS", "L-BFGS-B", "CG"))){
-        warning("Only the gradient methods \"BFGS\", \"L-BFGS-B\", and \"CG\" are available in a parallel version.")
+    if(!(method %in% c("L-BFGS-B", "BFGS", "CG"))){
+        warning("Only the gradient methods \"L-BFGS-B\", \"BFGS\", and \"CG\" are available in a parallel version.")
         return(optim(par=par, fn=fn, gr=gr, ..., method=method,
                      lower=lower, upper=upper, control=list(), hessian=FALSE))
     }

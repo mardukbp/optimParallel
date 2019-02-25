@@ -10,6 +10,7 @@ f1 <- function(par, x){
     -sum(dnorm(x, par[1], par[2], log=TRUE))
 }
 f2 <- function(par, y){
+#    print(y)
     -sum(dnorm(y, par[1], par[2], log=TRUE))
 }
 f3 <- function(par){
@@ -49,61 +50,66 @@ f7 <- function(x, ...){
     sum(x^2)
 }
 
+f8 <- function(zz, x){
+#    print(par)
+    -sum(dnorm(x, zz[1], zz[2], log=TRUE))
+}
+
 test_that("optimParallel",{
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
-                      lower=c(-Inf,0.001),
+    compareOptim(list(par=c(2,1), fn=f1, x=x, lower=c(-Inf,0.001),
                       control=list(factr=factr)), verbose=verbose)
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr)),
                  parallel=list(forward=TRUE),
                  verbose=verbose, tolerance=1e-2)
     
-    compareOptim(list(par=c(12,100), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(12,100), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr)), verbose=verbose)
-    compareOptim(list(par=c(12,100), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(12,100), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr)),
                parallel=list(forward=TRUE), tolerance=1e-2,
                verbose=verbose)
 
     compareOptim(list(par=c(12,100), fn=f2, y=x,
-                      method = "L-BFGS-B", lower=c(-Inf,0.001),
+                      lower=c(-Inf,0.001),
                       control=list(factr=factr)), verbose=verbose)
 
     expect_error(optimParallel(par=c(12,100), fn=f2,
                                method = "L-BFGS-B",
                                lower=c(-Inf,0.001),
-                               control=list(factr=factr)))    
+                               control=list(factr=factr)),
+                 "argument \"y\" is missing, with no default")    
 })
 
 
 test_that("bounds",{
-    compareOptim(list(par=c(2), fn=f3, method = "L-BFGS-B", 
+    compareOptim(list(par=c(2), fn=f3, 
                       upper = c(10),
                       control=list(factr=factr)),
                  verbose=verbose)
-    compareOptim(list(par=c(2), fn=f3, method = "L-BFGS-B", 
+    compareOptim(list(par=c(2), fn=f3, 
                       upper = c(10),
                       control=list(factr=factr)),
                  parallel=list(forward=TRUE),
                  verbose=verbose)
 
-    compareOptim(list(par=c(2,1), fn=f3, method = "L-BFGS-B", 
+    compareOptim(list(par=c(2,1), fn=f3, 
                       upper = c(10,15),
                       control=list(factr=factr)),
                  verbose=verbose)
-    compareOptim(list(par=c(2,1), fn=f3, method = "L-BFGS-B", 
+    compareOptim(list(par=c(2,1), fn=f3, 
                       upper = c(10,15),
                       control=list(factr=factr)),
                  parallel=list(forward=TRUE),
                  verbose=verbose)
 
-    compareOptim(list(par=c(12,100), fn=function(x) sum(x), method = "L-BFGS-B",
+    compareOptim(list(par=c(12,100), fn=function(x) sum(x),
                       lower=c(14,-21),
                       control=list(factr=factr)), verbose=verbose)
-    compareOptim(list(par=c(12,100), fn=function(x) sum(x), method = "L-BFGS-B",
+    compareOptim(list(par=c(12,100), fn=function(x) sum(x),
                       lower=c(14,-21),
                       control=list(factr=factr)),
                  parallel=list(forward=TRUE), verbose=verbose)
@@ -111,22 +117,22 @@ test_that("bounds",{
 
 
 test_that("ndeps",{
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr, ndeps=c(.1,.1))),
                  verbose=verbose)
 
-    ## compareOptim(list(par=c(2,1), fn=f1, method = "L-BFGS-B",
+    ## compareOptim(list(par=c(2,1), fn=f1,
     ##                   lower=c(-Inf,0.001),
     ##                   control=list(factr=factr, ndeps=c(.1,.1))),
     ##              parallel=list(forward=TRUE), tolerance=1e-3,
     ##              verbose=verbose)
 
-    compareOptim(list(par=c(12,100), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(12,100), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr, ndeps=c(.1,.1))),
                  verbose=verbose)
-    ## compareOptim(list(par=c(12,100), fn=f1, method = "L-BFGS-B",
+    ## compareOptim(list(par=c(12,100), fn=f1,
     ##                   lower=c(-Inf,0.001),
     ##                   control=list(factr=factr, ndeps=c(.1,.1))),
     ##              parallel=list(forward=TRUE), tolerance=1e-3,
@@ -135,10 +141,10 @@ test_that("ndeps",{
 
 
 test_that("fnscale",{
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr, fnscale=1000)), verbose=verbose)
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr, fnscale=1000)),
                  parallel=list(forward=TRUE), tolerance=1e-3,
@@ -147,71 +153,44 @@ test_that("fnscale",{
 
 
 test_that("parscale",{
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(factr=factr,
                                    parscale=c(2,4))),
                  verbose=verbose)
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f1, x=x,
                       lower=c(-Inf,0.001),
                       control=list(parscale=c(2,4), maxit=1)),
                  parallel=list(forward=TRUE), tolerance=1e-2,
                  verbose=verbose)
     
-    compareOptim(list(par=c(2,1), fn=f1, x=x, method = "L-BFGS-B", lower=c(-Inf,0.001),
+    compareOptim(list(par=c(2,1), fn=f1, x=x, lower=c(-Inf,0.001),
                       control=list(factr=factr, parscale=c(.2,4))), verbose=verbose)
-    ## compareOptim(list(par=c(2,1), fn=f1, method = "L-BFGS-B", lower=c(-Inf,0.001),
+    ## compareOptim(list(par=c(2,1), fn=f1, lower=c(-Inf,0.001),
     ##                   control=list(factr=factr, parscale=c(.2,4))),
     ##              parallel=list(forward=TRUE), tolerance=1e-3, verbose=verbose)
 })
 
 test_that("gradient",{
-    compareOptim(list(par=c(2), fn=f4, gr=g4, method = "L-BFGS-B",
+    compareOptim(list(par=c(2), fn=f4, gr=g4,
                       control=list(factr=factr)),
                  verbose=verbose)
-    compareOptim(list(par=c(2,1), fn=f4, gr=g4, method = "L-BFGS-B",
+    compareOptim(list(par=c(2,1), fn=f4, gr=g4,
                       control=list(factr=factr)),
                  verbose=verbose)
-    compareOptim(list(par=c(3,2,1), fn=f4, gr=g4, method = "L-BFGS-B",
+    compareOptim(list(par=c(3,2,1), fn=f4, gr=g4,
                       control=list(factr=factr)),
                  verbose=verbose)
 })
 
 
 test_that("... args",{
-    compareOptim(list(par=c(2), fn=f5, gr=g5, method = "L-BFGS-B",
+    compareOptim(list(par=c(2), fn=f5, gr=g5,
                       control=list(factr=factr), a=1),
                  verbose=verbose)
-    compareOptim(list(par=c(2), fn=f5, method = "L-BFGS-B",
-                      control=list(factr=factr), a=1),
-                 verbose=verbose)
-})
-
-test_that("method = BFGS and CG",{
-    compareOptim(list(par=c(2), fn=f5, gr=g5, method = "BFGS",
-                      control=list(factr=factr), a=1),
-                 verbose=verbose)
-    compareOptim(list(par=c(2), fn=f5, method = "BFGS",
-                      control=list(factr=factr), a=1),
-                 verbose=verbose)
-    compareOptim(list(par=c(2), fn=f5, gr=g5, method = "CG",
-                      control=list(factr=factr), a=1),
-                 verbose=verbose)
-    compareOptim(list(par=c(2), fn=f5, method = "CG",
+    compareOptim(list(par=c(2), fn=f5,
                       control=list(factr=factr), a=1),
                  verbose=verbose)
 })
 
 
-test_that("fn can have ... arguments",{
-    compareOptim(list(par=2, fn=f7, method = "L-BFGS-B",
-                      control=list(factr=factr)),
-                 verbose=verbose)
-    compareOptim(list(par=2, fn=f7, kjvasfa=4, method = "L-BFGS-B",
-                      control=list(factr=factr)),
-                 verbose=verbose)
-    
-    expect_warning(optimParallel(par=2, fn=f7, x=2, control=list(factr=factr)),
-                   "has the same name as one argument passed through")
-
-})

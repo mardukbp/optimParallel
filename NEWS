@@ -1,3 +1,12 @@
+- version 0.8: 
+commit f0a8ed6e658cb481d549fd908d5640bf03abf394
+Author: Florian Gerber <florian.gerber@math.uzh.ch>
+Date:   Mon Feb 25 18:38:17 2019 +0100
+(1) the mechanism to call 'fn' and 'gr' in parallel
+    was improved to avoid unecessary copies of objects
+    between processes in the cluster.
+(2) the 'BFGS' and 'GC' methods are nolonger supported. 
+
 - version 0.7-4: bug fix
 commit 813a06269b6e777157fbe529bc62e38fc4d59de4
 Author: Florian Gerber <florian.gerber@math.uzh.ch>

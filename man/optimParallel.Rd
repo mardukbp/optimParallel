@@ -10,12 +10,10 @@
 \alias{OptimParallel-Package}
 \alias{optimparallel-package}
 \alias{optimparallel-Package}
-\alias{optimParallel-package}
-\title{parallel version of \code{\link[stats]{optim}}}
+\title{parallel version of the L-BFGS-B method of \code{\link[stats]{optim}}}
 \usage{
-optimParallel(par, fn, gr = NULL, ..., method = c("L-BFGS-B", "BFGS", "CG"),
-  lower = -Inf, upper = Inf, control = list(), hessian = FALSE,
-  parallel = list())
+optimParallel(par, fn, gr = NULL, ..., lower = -Inf, upper = Inf,
+  control = list(), hessian = FALSE, parallel = list())
 }
 \arguments{
 \item{par}{see the documentation of \code{\link[stats]{optim}}.}
@@ -25,13 +23,7 @@ optimParallel(par, fn, gr = NULL, ..., method = c("L-BFGS-B", "BFGS", "CG"),
 \item{gr}{see the documentation of \code{\link[stats]{optim}}.}
 
 \item{...}{see the documentation of \code{\link[stats]{optim}}.
-Note that depending on the chosen cluster type for parallel execution, the \code{.GlobalEnv} of the R processes in the cluster contain different R objects compared to the main R process.
-In that case, it may be necessary to add all R object required by \code{fn} and \code{gr} here in order to pass them to the R processes in the cluster.}
-
-\item{method}{parallel versions of the gradient-based methods \code{"L-BFGS-B"} (default), \code{"BFGS"}, and \code{"CG"} of \code{\link[stats]{optim}} are available.
-The recommended method is \code{"L-BFGS-B"} because it triggers one (approximate) gradient evaluation per iteration, which best fits the implemented parallel processing scheme.   
-See the documentation of \code{\link[stats]{optim}} for information on the methods.
-If another method is specified, all arguments are directly passed to \code{\link[stats]{optim}}.}
+All R object required by \code{fn} and \code{gr} have to be added here.}
 
 \item{lower}{see the documentation of \code{\link[stats]{optim}}.}
 
@@ -48,23 +40,22 @@ See \code{\link[parallel]{makeCluster}} for more information.
 If the argument is not specified or \code{NULL}, the default cluster is used.
 See \code{\link[parallel]{setDefaultCluster}} for information on how to set up a default cluster.} 
  \item{\code{forward}}{ logical vector of length 1. If \code{FALSE} (default when loading the package), a numeric central difference approximation of the gradient defined as
-\eqn{(fn(x+\epsilon)-fn(x-\epsilon))/(2\epsilon)} is used, which corresponds to the approximation used in \code{\link[stats]{optim}}.
+\eqn{(fn(x+\epsilon)-fn(x-\epsilon))/(2\epsilon)} is used, which corresponds to the gradient approximation used in \code{\link[stats]{optim}}.
 If \code{TRUE}, a numeric forward difference approximation of the gradient essentially defined as
-\eqn{(fn(x+\epsilon)-fn(x))/\epsilon} is used. This reduces the number of function calls from \eqn{1+2p} to \eqn{1+p} and can be useful if the number of available cores is smaller than \eqn{1+2p} and if the memory limit is reached.}
+\eqn{(fn(x+\epsilon)-fn(x))/\epsilon} is used. This reduces the number of function calls from \eqn{1+2p} to \eqn{1+p} and can be useful if the number of available cores is smaller than \eqn{1+2p} or if the memory limit is reached. Note that the numeric central difference approximation is more accurate than the numeric forward difference approximation.}
 \item{\code{loginfo}}{ logical vector of length 1 with default value \code{FALSE} when loading the package. If \code{TRUE},
 additional log information containing the evaluated parameters as well as return values of \code{fn} and \code{gr} is returned.}
 }}
 }
 \value{
 Same as the return value of \code{\link[stats]{optim}}. See the documentation thereof for more information.\cr
-If a gradient-based method is specified and \code{parallel=list(loginfo=TRUE)}, additional log information containing the evaluated parameters as well as
+If \code{parallel=list(loginfo=TRUE)}, additional log information containing the evaluated parameters as well as
 the return values of \code{fn} and \code{gr} is returned.
 }
 \description{
-The function provides parallel versions of the gradient-based \code{\link[stats]{optim}} methods
-\code{"L-BFGS-B"}, \code{"BFGS"}, and \code{"CG"}.
-If the evaluation of the function \code{fn} takes more than 0.05 seconds, \code{optimParallel} can significantly reduce the optimization time. 
-For a \eqn{p}-parameter optimization based on \code{"L-BFGS-B"}, the speed increase is about factor \eqn{1+2p} when no analytic gradient is specified and \eqn{1+2p} processor cores are available.
+The function provides a parallel version of the L-BFGS-B method of \code{\link[stats]{optim}}.
+If the evaluation time of the objective function \code{fn} is more than 0.1 sceconds, \code{optimParallel} can significantly reduce the optimization time. 
+For a \eqn{p}-parameter optimization the speed increase is about factor \eqn{1+2p} when no analytic gradient is specified and \eqn{1+2p} processor cores are available.
 }
 \details{
 \code{optimParallel} is a wrapper to \code{\link[stats]{optim}} and relies on the lexical scoping mechanism of R
@@ -72,29 +63,6 @@ and the R package \pkg{parallel} to evaluate \code{fn}
 and its (approximate) gradient in parallel.\cr\cr
 Some default values of the argument \code{parallel} can be set via\cr\code{options("optimParallel.forward", "optimParallel.loginfo")}.
 }
-\section{Notes}{
-
-\describe{
-\item{1.}{If \code{fn} or \code{gr} depend on functions or methods from loaded packages,
-it may be necessary to explicitly load those packages in all processes of the cluster.
-For \code{cl} of class \code{"cluster"} one can use \code{clusterEvalQ(cl, search())} to check
-whether all required packages are on the search paths of all processes.
-If, for example, the R package \pkg{spam} is required and missing on those search paths,
-it can be added via \code{clusterEvalQ(cl, library("spam"))}.} 
-\item{2.}{If \code{fn} or \code{gr} depend on functions or objects defined in the current R session,
-it may be necessary to pass them to \code{optimParallel} via the \code{...} argument.
-Alternatively, they can be made available to the R processes in the cluster via \code{\link[parallel]{clusterEvalQ}}.}
-\item{3.}{Using parallel R code inside \code{fn} and \code{gr} may not work, because this results in nested parallel processing.}
-\item{4.}{Using \code{optimParellel} with \eqn{n} parallel processes increases the memory usage by about factor \eqn{n} compared to a call to \code{\link[stats]{optim}}.
-If the memory limit is reached this may severely slowdown the optimization.
-Strategies to reduce memory usage are
-(1) kill all unused processes on the computer,
-(2) revise the code of \code{fn} and/or \code{gr} to reduce its memory usage, and
-(3) reduce the number of parallel processes by specifying the argument \code{parallel=list(forward=TRUE)} and/or
-setting up a cluster with less parallel processes.}
-}
-}
-
 \section{Issues and bug report}{
 
 A list of known issues of \code{optimParallel} can be found at \url{https://git.math.uzh.ch/florian.gerber/optimParallel/issues}.
@@ -114,12 +82,10 @@ set.seed(13); x <- rnorm(1000, 5, 2)
 cl <- makeCluster(2)     # set the number of processor cores
 setDefaultCluster(cl=cl) # set 'cl' as default cluster
 
-optimParallel(par=c(1,1), fn=negll, x=x,
-              method = "L-BFGS-B", lower=c(-Inf, .0001))
+optimParallel(par=c(1,1), fn=negll, x=x, lower=c(-Inf, .0001))
 
-optimParallel(par=c(1,1), fn=negll, x=x,
-              method = "L-BFGS-B", lower=c(-Inf, .0001),
-              parallel=list(loginfo=TRUE))
+optimParallel(par=c(1,1), fn=negll, x=x, sleep=0, verbose=TRUE,
+              lower=c(-Inf, .0001), parallel=list(loginfo=TRUE))
 
 setDefaultCluster(cl=NULL); stopCluster(cl)
 
@@ -142,14 +108,12 @@ options(optimParallel.loginfo=TRUE)
 ## stop if change of f(x) is smaller than 0.01
 control <- list(factr=.01/.Machine$double.eps)
 
-optimParallel(par=c(1,1), fn=negll, x=x, sleep=.5,
-              verbose=TRUE, method="L-BFGS-B",
-              lower=c(-Inf, .0001), control=control)
+optimParallel(par=c(1,1), fn=negll, x=x, sleep=.5, verbose=TRUE,
+              verbose=TRUE, lower=c(-Inf, .0001), control=control)
 ## each step invokes 5 parallel calls to negll()
 
-optimParallel(par=c(1,1), fn=negll, x=x, sleep=.5,
-              method ="L-BFGS-B", lower=c(-Inf, .0001),
-              control=control,
+optimParallel(par=c(1,1), fn=negll, x=x, sleep=.5, verbose=TRUE,
+              lower=c(-Inf, .0001), control=control,
               parallel=list(forward=TRUE))
 ## each step invokes 3 parallel calls to negll()
 

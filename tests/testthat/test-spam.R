@@ -2,7 +2,6 @@
 ## library("testthat")
 ## library("optimParallel", lib.loc = "../../../lib/")
 source("testsetup.R")
-
 context("test-spam")
 
 control <- structure(list(maxit = 10,
@@ -12,7 +11,7 @@ control <- structure(list(maxit = 10,
 
 test_that("optimParallel - mle.spam",{
     skip_if_not(require("spam"), message="spam not available for testing dispatching to loaded packages")
-    clusterEvalQ(cl, require("spam"))
+    clusterEvalQ(getDefaultCluster(), require("spam"))
                                        
     truebeta <- c(1,2,.2)   
     truetheta <- c(.5,2,.02)
@@ -36,9 +35,9 @@ test_that("optimParallel - mle.spam",{
         }
         p <- dim(X)[2]
         n <- length(y)
-        neg2loglikelihood <- function(fulltheta, ...) {
+        neg2loglikelihood <- function(fulltheta) {
             Sigma <- do.call(Covariance, list(distmat, fulltheta[-(1:p)]))
-            cholS <- update.spam.chol.NgPeyton(Rstruct, Sigma, ...)
+            cholS <- update.spam.chol.NgPeyton(Rstruct, Sigma)
             resid <- y - X %*% fulltheta[1:p]
             return(n * log(2 * pi) + 2 * c(determinant.spam.chol.NgPeyton(cholS)$modulus) + 
                    sum(resid * solve.spam(cholS, resid)))

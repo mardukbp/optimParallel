@@ -7,7 +7,7 @@ factr <- .01/.Machine$double.eps
 set.seed(13)
 
 compareOptim <- function(optim_args, parallel=NULL, tolerance = 1e-5, verbose=FALSE){
-    ref <- do.call("optim", optim_args)
+    ref <- do.call("optim", c(method="L-BFGS-B", optim_args))
     o <- do.call("optimParallel",
                  c(optim_args, parallel=list(parallel)))
     if(verbose){

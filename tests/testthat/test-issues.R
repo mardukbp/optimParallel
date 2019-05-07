@@ -69,3 +69,21 @@ test_that("optimParallel - use compiled code from other packages",{
                  verbose=verbose)
 })
 
+FN4 <- function(par, a, sleep=0){
+    Sys.sleep(sleep)
+    sum(10*par^2) + a
+}
+
+GR4 <- function(par, b, sleep=0){
+    Sys.sleep(sleep)
+    b*2*par
+}
+
+
+test_that("optimParallel - fn and gr can have different aguments",{
+    expect_equal(optimParallel(par=1, fn=FN4, gr=GR4,
+                               a=1, b=10, sleep=0,
+                               control=control)$par, 0)
+})
+
+

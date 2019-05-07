@@ -22,7 +22,7 @@ f4 <- function(par){
     sum(par^2)
 }
 g4 <- function(par){
-   # cat("g:", par,"\n")
+# cat("g:", par,"\n")
 #    Sys.sleep(1)
     2*par
 }
@@ -192,5 +192,3 @@ test_that("... args",{
                       control=list(factr=factr), a=1),
                  verbose=verbose)
 })
-
-

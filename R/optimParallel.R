@@ -12,7 +12,7 @@
 #' @param fn see the documentation of \code{\link[stats]{optim}}.
 #' @param gr see the documentation of \code{\link[stats]{optim}}.
 #' @param ... see the documentation of \code{\link[stats]{optim}}.
-#' All R object required by \code{fn} and \code{gr} have to be added here.
+#' See section 'Notes' for more information. 
 #' @param lower see the documentation of \code{\link[stats]{optim}}.
 #' @param upper see the documentation of \code{\link[stats]{optim}}.
 #' @param control see the documentation of \code{\link[stats]{optim}}.
@@ -53,10 +53,15 @@
 #' whether all required packages are on the search paths of all processes.
 #' If, for example, the R package \pkg{spam} is required and missing on those search paths,
 #' it can be added via \code{clusterEvalQ(cl, library("spam"))}.} 
-#' \item{2.}{If \code{fn} or \code{gr} depend on functions or objects defined in the current R session,
+#' \item{2.}{If \code{fn} or \code{gr} have more than one argument,
 #' it may be necessary to pass those to \code{optimParallel} via the \code{...} argument.
-#' \item{3.}{Using parallel R code inside \code{fn} and \code{gr} can work if suitable clusters are setup (one cluster for \code{optimParallel} and one for the parallel execution of \code{fn} and \code{gr}).}
-#' \item{4.}{Using \code{optimParallel} with \eqn{n} parallel processes increases the memory usage by about factor \eqn{n} compared to a call to \code{\link[stats]{optim}}.
+#' An illustration is given in the section 'Examples'. }
+#' \item{3.}{We recommend that all R objects used by \code{fn} and/or \code{gr} are passed to \code{fn} and/or \code{gr} via arguments.
+#' In certain cases it may also work that \code{fn} and/or \code{gr} use objects from the \code{.GlobalEnv} (without having corresponding arguments).
+#' In that case it can be necessary to pass those objects to all processes of the used cluster via \code{\link[parallel]{clusterExport}}.
+#' An illustration is given in the section 'Examples'.} 
+#' \item{4.}{Using parallel R code inside \code{fn} and \code{gr} can work if suitable clusters are setup (one cluster for \code{optimParallel} and one for the parallel execution of \code{fn} and \code{gr}).}
+#' \item{5.}{Using \code{optimParallel} with \eqn{n} parallel processes increases the memory usage by about factor \eqn{n} compared to a call to \code{\link[stats]{optim}}.
 #' If the memory limit is reached this may severely slowdown the optimization.
 #' Strategies to reduce memory usage are
 #' (1) kill all unused processes on the computer,
@@ -122,6 +127,21 @@
 #'               lower=c(-Inf, .0001), control=control,
 #'               parallel=list(forward=TRUE))
 #' ## each step invokes 3 parallel calls to negll()
+#'
+#' ## passing objects to fn/gr (see section 'Notes')
+#' ## ----------------------------------------------
+#' a <- 10
+#' fn <- function(par, b) sum((par-a-b)^2)
+#'
+#' ## approach 1:
+#' clusterExport(cl, "a")
+#' optimParallel(par=1, fn=fn, b=1)
+#'
+#' ## approach 2 (recommended):
+#' ## rewrite 'fn' such that all necessary objects
+#' ## are passed as arguments
+#' fn <- function(par, a, b) sum((par-a-b)^2)
+#' optimParallel(par=1, fn=fn, a=20, b=1)
 #' 
 #' setDefaultCluster(cl=NULL); stopCluster(cl) }
 #' @export
@@ -196,9 +216,8 @@ FGgenerator <- function(par, fn, gr=NULL, ...,
     assign("fn", fn, envir=e)
     assign("gr", gr, envir=e)
     parallel::clusterExport(parallel$cl, "e", list2env(list(e=e)))
-    parallel::clusterEvalQ(parallel$cl, ls())
     if(!is.null(gr)){
-        exprList <- getExprGr(fn, fn, dots=dots)
+        exprList <- getExprGr(fn=fn, gr=gr, dots=dots)
     } else {
         nParallel <- if(parallel$forward) 1+length(par) else 1+2*length(par)
         exprList <- lapply(seq_len(nParallel), getExprApprox, f=fn, name=names(par), dots=dots)

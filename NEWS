@@ -1,3 +1,9 @@
+- version 0.8-1:
+commit dfbf0197d2b1cd02b36fa7877cf5506127a52150 
+Author: Florian Gerber <florian.gerber@math.uzh.ch>
+Date:   Tue May 7 10:07:40 2019 -0600
+(1) improve documentation
+
 - version 0.8: 
 commit f0a8ed6e658cb481d549fd908d5640bf03abf394
 Author: Florian Gerber <florian.gerber@math.uzh.ch>

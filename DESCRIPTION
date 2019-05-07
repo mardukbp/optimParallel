@@ -1,8 +1,8 @@
 Package: optimParallel
 Type: Package
 Title: Parallel Version of the L-BFGS-B Optimization Method
-Version: 0.8
-Date: 2019-02-25
+Version: 0.8-1
+Date: 2019-05-07
 Author: Florian Gerber
 Maintainer: Florian Gerber <florian.gerber@math.uzh.ch>
 Description: Provides a parallel version of the L-BFGS-B method of optim(). The main function of the package is optimParallel(), which has the same usage and output as optim(). Using optimParallel() can significantly reduce the optimization time.
@@ -15,6 +15,6 @@ Suggests: R.rsp, roxygen2, spam, microbenchmark, testthat, ggplot2,
 VignetteBuilder: R.rsp
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-02-25 21:25:22 UTC; floger
+Packaged: 2019-05-07 17:08:16 UTC; fl
 Repository: CRAN
-Date/Publication: 2019-02-25 21:40:04 UTC
+Date/Publication: 2019-05-07 17:20:03 UTC

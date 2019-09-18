@@ -9,7 +9,7 @@ Description: Provides a parallel version of the L-BFGS-B method of optim(). The 
 License: GPL (>= 2)
 URL: https://git.math.uzh.ch/florian.gerber/optimParallel
 BugReports: https://git.math.uzh.ch/florian.gerber/optimParallel/issues
-Depends: R (>= 3.5), stats, parallel
+Depends: R (>= 2.15), stats, parallel
 Suggests: R.rsp, roxygen2, spam, microbenchmark, testthat, ggplot2,
         numDeriv, lbfgsb3, lbfgsb3c
 VignetteBuilder: R.rsp

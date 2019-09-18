@@ -1,3 +1,5 @@
+This branch has a modified `DESCRIPTION`file that allows installing this package in pqR.
+
 The R package optimParallel 
 ===========================
 
